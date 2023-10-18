@@ -28,40 +28,43 @@ fn material(spaceship: &[usize]) -> usize {
     //height of the the valley
     let mut valley_height: usize = spaceship[current_pos];
 
-    //material that can be placed in the valley so far
-    let mut current_material: usize = 0;
+    current_pos += 1; // start counting from the next element
 
-    current_pos += 1;
-    while current_pos < spaceship_size {
+    let mut valley_start: usize = current_pos; //next element after block that starts valley, first element in the valley
 
+    let mut biggest_so_far: usize = 0; //biggest element in the valley
+
+    let mut current_material: usize = 0; //material that can be placed in the valley so far
+
+    loop {
+        //when at the end of spaceship check if no valley is open
+        if current_pos >= spaceship_size {
+            if valley_start >= spaceship_size { //valley was opened at the last block - successfully end program
+                break;
+            } else { //some valley wasn't closed, try to close it with highest valley_height that will close
+                valley_height = biggest_so_far;
+                current_pos = valley_start;
+                current_material = 0;
+            }
+        }
 
         //check if current block is lower than valley_height
-        //if yes add appropriate number of blocks to current_material
-        //if not start new valley from current position
         let current_height: usize = spaceship[current_pos];
-        if current_height < valley_height {
-            current_material += valley_height - current_height
-        } else {
-            //close current valley and start new one
+        if current_height < valley_height { //valley wasn't closed, count material
+
+            current_material += valley_height - current_height; //add appropriate number of blocks to current_material
+
+            //find the biggest block in the valley in case it will not close
+            if current_height > biggest_so_far {
+                biggest_so_far = current_height;
+            }
+        } else { //valley was successfully closed
+            //add counted material to output and start new valley
             material += current_material;
             current_material = 0;
             valley_height = current_height;
-
-            //if new valley_height is bigger or same than before we need to check if valley will close before counting material
-            let mut closure_curr_position: usize = current_pos + 1;
-            let mut biggest_so_far: usize = 0;
-            'check: while closure_curr_position < spaceship_size {
-                let closure_curr_height: usize = spaceship[closure_curr_position];
-                if closure_curr_height >= valley_height {
-                    break 'check; // valley will close
-                } else if closure_curr_height > biggest_so_far {
-                    biggest_so_far = closure_curr_height; //finding biggest block so far
-                }
-                closure_curr_position += 1;
-            }
-            if closure_curr_position >= spaceship_size { //valley didn't close
-                valley_height = biggest_so_far; //assign valley height to highest value that will close
-            }
+            valley_start = current_pos + 1;
+            biggest_so_far = 0;
         }
         current_pos += 1;
     }
